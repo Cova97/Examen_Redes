@@ -8,6 +8,8 @@ class Client:
         self.port = 1234
         self.friends = {}  # Store friends as a dictionary {identifier: 'friend name or IP'}
 
+
+
     def connect(self):
         try:
             self.client.connect((self.host, self.port))
@@ -30,7 +32,7 @@ class Client:
             print(str(e))
 
     def add_friend(self, identifier, name):
-        self.friends[identifier] = name
+        self.friends[name] = identifier
         print(f"Added {name} as a friend")
 
     def remove_friend(self, identifier):
@@ -66,17 +68,19 @@ if __name__ == '__main__':
     try:
         while True:
             message = input("Enter message or command: ")
-            if message.startswith("@addfriend"):
+            if message.startswith("/addfriend"):
                 _, identifier, name = message.split(" ", 2)
                 client.add_friend(identifier, name)
-            elif message.startswith("@removefriend"):
+            elif message.startswith("/removefriend"):
                 _, identifier = message.split(" ", 1)
                 client.remove_friend(identifier)
-            elif message.startswith("@listfriends"):
+            elif message.startswith("/listfriends"):
                 client.list_friends()
-            elif message.startswith("@"):
-                # Private message: @friend_identifier message
-                client.send(message)
+            elif message.startswith("/"):
+                recipient, private_msg = message.split(" ", 1)
+                recipient = recipient[1:]
+                id = client.friends[recipient]
+                client.send("@"+id+" "+private_msg)
             else:
                 # Public message
                 client.send(message)

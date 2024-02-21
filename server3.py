@@ -35,6 +35,7 @@ class Server:
                 client_id = str(addr[1])  # This is a simplified example; consider a more unique identifier
                 self.clients[client_id] = conn
                 print(f"Connected to {addr}")
+                self.broadcast(f"{addr} connected")
         except Exception as e:
             print(str(e))
 
@@ -46,6 +47,7 @@ class Server:
                 else:
                     print(f"The client {recipient_id} is not connected.")
         except Exception as e:
+            
             print(str(e))
 
 
@@ -68,6 +70,7 @@ class Server:
         except Exception as e:
             print(str(e))
         finally:
+            self.broadcast(f"{add} disconnected")
             self.remove_client(add)
             conn.close()
 
