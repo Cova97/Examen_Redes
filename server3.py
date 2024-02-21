@@ -8,13 +8,7 @@ class Server:
         self.client_lock = threading.Lock()
         self.clients = {}
 
-    def add_client(self, conn, add):
-        try:
-            with self.client_lock:
-                self.clients[add] = conn
-                print(f"Conectado a {add}")
-        except Exception as e:
-            print(str(e))
+
 
     def remove_client(self, add):
         try:
@@ -33,15 +27,27 @@ class Server:
         except Exception as e:
             print(str(e))
 
-    def send_to_client(self, sender_add, recipient_add, data):
+
+    def add_client(self, conn, addr):
         try:
             with self.client_lock:
-                if recipient_add in self.clients:
-                    self.clients[recipient_add].send(data.encode())
-                else:
-                    print(f"El cliente {recipient_add} no está conectado.")
+                # Convert the address to a string representation or use a unique identifier
+                client_id = str(addr[1])  # This is a simplified example; consider a more unique identifier
+                self.clients[client_id] = conn
+                print(f"Connected to {addr}")
         except Exception as e:
             print(str(e))
+
+    def send_to_client(self, sender_id, recipient_id, data):
+        try:
+            with self.client_lock:
+                if recipient_id in self.clients:
+                    self.clients[recipient_id].send(data.encode())
+                else:
+                    print(f"The client {recipient_id} is not connected.")
+        except Exception as e:
+            print(str(e))
+
 
     def handle_client(self, conn, add):
         try:
