@@ -4,14 +4,14 @@ import threading
 class Client:
     def __init__(self):
         self.client = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        self.host =    socket.gethostname()
-        #self.host =   #'172.18.39.247' #socket.gethostname()
+        self.host = socket.gethostname()  # Use server's hostname or IP
         self.port = 1234
+        self.friends = {}  # Store friends as a dictionary {identifier: 'friend name or IP'}
 
     def connect(self):
         try:
             self.client.connect((self.host, self.port))
-            print(f"Conectado a {self.host}:{self.port}")
+            print(f"Connected to {self.host}:{self.port}")
         except Exception as e:
             print(str(e))
 
@@ -25,9 +25,28 @@ class Client:
         try:
             while True:
                 data = self.client.recv(1024).decode()
-                print(f"Servidor: {data}")
+                print(f"Server: {data}")
         except Exception as e:
             print(str(e))
+
+    def add_friend(self, identifier, name):
+        self.friends[identifier] = name
+        print(f"Added {name} as a friend")
+
+    def remove_friend(self, identifier):
+        if identifier in self.friends:
+            removed_friend = self.friends.pop(identifier)
+            print(f"Removed {removed_friend} from friends")
+        else:
+            print("Friend not found")
+
+    def list_friends(self):
+        if self.friends:
+            print("Friends list:")
+            for identifier, name in self.friends.items():
+                print(f"{identifier}: {name}")
+        else:
+            print("You have no friends added")
 
     def close(self):
         try:
@@ -35,30 +54,35 @@ class Client:
         except Exception as e:
             print(str(e))
 
-# Instanciamos un objeto de la clase Client
-client = Client()
-# Nos conectamos al servidor
-client.connect()
+# Example usage
+if __name__ == '__main__':
+    client = Client()
+    client.connect()
 
-# Creamos un hilo para recibir mensajes del servidor
-recv_thread = threading.Thread(target=client.recv)
-recv_thread.start()
+    # Start receiving thread
+    recv_thread = threading.Thread(target=client.recv)
+    recv_thread.start()
 
-# Ciclo para enviar mensajes al servidor
-try:
-    while True:
-        message = input()
-        if message.startswith("@"):
-            # Mensaje privado: @destinatario mensaje
-            client.send(message)
-        else:
-            # Mensaje público
-            client.send(message)
-except KeyboardInterrupt:
-    client.close()
-    recv_thread.join()
-    print("Conexion cerrada")
-finally:
-    client.close()
-    recv_thread.join()
-    print("Conexion cerrada")
+    try:
+        while True:
+            message = input("Enter message or command: ")
+            if message.startswith("@addfriend"):
+                _, identifier, name = message.split(" ", 2)
+                client.add_friend(identifier, name)
+            elif message.startswith("@removefriend"):
+                _, identifier = message.split(" ", 1)
+                client.remove_friend(identifier)
+            elif message.startswith("@listfriends"):
+                client.list_friends()
+            elif message.startswith("@"):
+                # Private message: @friend_identifier message
+                client.send(message)
+            else:
+                # Public message
+                client.send(message)
+    except KeyboardInterrupt:
+        print("Closing connection...")
+    finally:
+        client.close()
+        recv_thread.join()
+        print("Connection closed")
