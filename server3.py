@@ -33,8 +33,8 @@ class Server:
     def add_client(self, conn, addr):
         try:
             with self.client_lock:
-                # Convert the address to a string representation or use a unique identifier
-                client_id = str(addr[1])  # This is a simplified example; consider a more unique identifier
+                
+                client_id = str(addr[1]) 
                 self.clients[client_id] = conn
                 print(f"Connected to {addr}")
                 self.broadcast(f"{addr} connected")

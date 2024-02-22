@@ -4,10 +4,10 @@ import threading
 class Client:
     def __init__(self):
         self.client = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        self.host = socket.gethostname()  # Use server's hostname or IP
+        self.host = socket.gethostname() 
         self.port = 1234
-        self.friends = {}  # Store friends as a dictionary {identifier: 'friend name or IP'}
-
+        self.friends = {}  
+        
     def connect(self):
         try:
             self.client.connect((self.host, self.port))
@@ -54,12 +54,12 @@ class Client:
         except Exception as e:
             print(str(e))
 
-# Example usage
+
 if __name__ == '__main__':
     client = Client()
     client.connect()
 
-    # Start receiving thread
+    
     recv_thread = threading.Thread(target=client.recv)
     recv_thread.start()
 
@@ -84,7 +84,7 @@ if __name__ == '__main__':
                 id = client.friends[recipient]
                 client.send("@"+id+" "+private_msg)
             else:
-                # Public message
+                
                 client.send(message)
     except KeyboardInterrupt:
         print("Closing connection...")
