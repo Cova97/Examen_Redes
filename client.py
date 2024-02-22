@@ -8,8 +8,6 @@ class Client:
         self.port = 1234
         self.friends = {}  # Store friends as a dictionary {identifier: 'friend name or IP'}
 
-
-
     def connect(self):
         try:
             self.client.connect((self.host, self.port))
@@ -76,6 +74,10 @@ if __name__ == '__main__':
                 client.remove_friend(identifier)
             elif message.startswith("/listfriends"):
                 client.list_friends()
+            elif message.startswith("/connected"):
+                _, friend = message.split(" ", 1)
+                id = client.friends[friend]
+                client.send("/connected "+id)
             elif message.startswith("/"):
                 recipient, private_msg = message.split(" ", 1)
                 recipient = recipient[1:]

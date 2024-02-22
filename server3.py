@@ -8,7 +8,9 @@ class Server:
         self.client_lock = threading.Lock()
         self.clients = {}
 
-
+    def is_client_connected(self, recipient_id):
+        with self.client_lock:
+            return recipient_id in self.clients
 
     def remove_client(self, add):
         try:
@@ -59,7 +61,13 @@ class Server:
                     break
                 print(f"Cliente {add}: {data}")
 
-                if data.startswith("@"):
+                if data.startswith("/connected"):
+                    _, friend = data.split(" ", 1)
+                    if self.is_client_connected(friend):
+                        conn.send(f"Client {friend} is connected.".encode())
+                    else:
+                        conn.send(f"Client {friend} is not connected.".encode())
+                elif data.startswith("@"):
                     # Mensaje privado: @destinatario mensaje
                     recipient, private_msg = data.split(" ", 1)
                     recipient_add = recipient[1:]
