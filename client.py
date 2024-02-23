@@ -4,7 +4,7 @@ import threading
 class Client:
     def __init__(self):
         self.client = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        self.host = socket.gethostname() 
+        self.host = "172.18.59.198"
         self.port = 1234
         self.friends = {}  
         
@@ -62,7 +62,7 @@ if __name__ == '__main__':
     
     recv_thread = threading.Thread(target=client.recv)
     recv_thread.start()
-
+    print(f"/addfriend: Añadir amigos \n /removefriend: Remover amigos\n/listfriends: Mostrar lista de amigos\n/connected: Verificar estado de amigo\n/history: Historial\n/id: Mensaje privado")
     try:
         while True:
             message = input("Enter message or command: ")
