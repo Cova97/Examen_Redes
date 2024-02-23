@@ -8,10 +8,6 @@ class Server:
         self.client_lock = threading.Lock()
         self.clients = {}
 
-    def is_client_connected(self, recipient_id):
-        with self.client_lock:
-            return recipient_id in self.clients
-
     def remove_client(self, add):
         try:
             with self.client_lock:
@@ -33,8 +29,8 @@ class Server:
     def add_client(self, conn, addr):
         try:
             with self.client_lock:
-                
-                client_id = str(addr[1]) 
+                # Convert the address to a string representation or use a unique identifier
+                client_id = str(addr[1])  # This is a simplified example; consider a more unique identifier
                 self.clients[client_id] = conn
                 print(f"Connected to {addr}")
                 self.broadcast(f"{addr} connected")
@@ -61,13 +57,7 @@ class Server:
                     break
                 print(f"Cliente {add}: {data}")
 
-                if data.startswith("/connected"):
-                    _, friend = data.split(" ", 1)
-                    if self.is_client_connected(friend):
-                        conn.send(f"Client {friend} is connected.".encode())
-                    else:
-                        conn.send(f"Client {friend} is not connected.".encode())
-                elif data.startswith("@"):
+                if data.startswith("@"):
                     # Mensaje privado: @destinatario mensaje
                     recipient, private_msg = data.split(" ", 1)
                     recipient_add = recipient[1:]
@@ -99,6 +89,38 @@ class Server:
             print(str(e))
         finally:
             self.server.close()
+
+    # Funcion para guardar los mensajes de un usuario cuando se desconecta
+    def save_messages(self, add, data):
+        try:
+            with self.client_lock:
+                with open(f"messages_{add}.txt", "a") as file:
+                    file.write(data + "\n")
+        except Exception as e:
+            print(str(e))
+
+    # funcion para recuperar los mensajes guardados de un usuario cuando se conecta otra vez
+    def recover_messages(self, add):
+        try:
+            with self.client_lock:
+                with open(f"messages_{add}.txt", "r") as file:
+                    messages = file.read()
+                return messages
+        except Exception as e:
+            print(str(e))
+
+    # Funcion para imprimir los mensajes guardados de un usuario cuando se conecta
+    def print_messages(self, add):
+        try:
+            with self.client_lock:
+                messages = self.recover_messages(add)
+                if messages:
+                    print(f"Messages for {add}:")
+                    print(messages)
+                else:
+                    print(f"No messages for {add}")
+        except Exception as e:
+            print(str(e))
 
 if __name__ == '__main__':
     server = Server()
