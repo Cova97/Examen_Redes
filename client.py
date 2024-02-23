@@ -78,6 +78,8 @@ if __name__ == '__main__':
                 _, friend = message.split(" ", 1)
                 id = client.friends[friend]
                 client.send("/connected "+id)
+            elif message.startswith("/history"):
+                client.send(message)
             elif message.startswith("/"):
                 recipient, private_msg = message.split(" ", 1)
                 recipient = recipient[1:]

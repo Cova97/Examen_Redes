@@ -7,6 +7,10 @@ class Server:
         self.host = socket.gethostname()
         self.client_lock = threading.Lock()
         self.clients = {}
+    
+    def is_client_connected(self, recipient_id):
+        with self.client_lock:
+            return recipient_id in self.clients
 
     def remove_client(self, add):
         try:
@@ -33,7 +37,7 @@ class Server:
                 client_id = str(addr[1])  # This is a simplified example; consider a more unique identifier
                 self.clients[client_id] = conn
                 print(f"Connected to {addr}")
-                self.broadcast(f"{addr} connected")
+                #self.broadcast(0000,f"{addr} connected")
         except Exception as e:
             print(str(e))
 
@@ -56,8 +60,17 @@ class Server:
                 if not data:
                     break
                 print(f"Cliente {add}: {data}")
-
-                if data.startswith("@"):
+                if data.startswith("/connected"):
+                    _, friend = data.split(" ", 1)
+                    if self.is_client_connected(friend):
+                        conn.send(f"Client {friend} is connected.".encode())
+                    else:
+                        conn.send(f"Client {friend} is not connected.".encode())
+                elif data.startswith("/history"):
+                    history = self.recover_messages(add)
+                    print(history)
+                    conn.send(history.encode())
+                elif data.startswith("@"):
                     # Mensaje privado: @destinatario mensaje
                     recipient, private_msg = data.split(" ", 1)
                     recipient_add = recipient[1:]
@@ -65,10 +78,11 @@ class Server:
                 else:
                     # Mensaje público
                     self.broadcast(add, data)
+                self.save_messages(add, data)
         except Exception as e:
             print(str(e))
         finally:
-            self.broadcast(f"{add} disconnected")
+            #self.broadcast(0000,f"{add} disconnected")
             self.remove_client(add)
             conn.close()
 
@@ -91,23 +105,27 @@ class Server:
             self.server.close()
 
     # Funcion para guardar los mensajes de un usuario cuando se desconecta
-    def save_messages(self, add, data):
+    def save_messages(self, client_id, data):
+        filename = f"messages_{client_id}.txt"
         try:
             with self.client_lock:
-                with open(f"messages_{add}.txt", "a") as file:
+                with open(filename, "a") as file:
                     file.write(data + "\n")
         except Exception as e:
             print(str(e))
 
-    # funcion para recuperar los mensajes guardados de un usuario cuando se conecta otra vez
-    def recover_messages(self, add):
+    def recover_messages(self, client_id):
+        filename = f"messages_{client_id}.txt"
         try:
             with self.client_lock:
-                with open(f"messages_{add}.txt", "r") as file:
+                with open(filename, "r") as file:
                     messages = file.read()
                 return messages
+        except FileNotFoundError:
+            return "No message history found."
         except Exception as e:
             print(str(e))
+            return "Error retrieving message history."
 
     # Funcion para imprimir los mensajes guardados de un usuario cuando se conecta
     def print_messages(self, add):
